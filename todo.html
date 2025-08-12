@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .task-card {
+            transition: all 0.2s ease;
+            width: 95%;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+            background-color: #505d73;
+        }
+
+        .column {
+            height: 750px;
+            max-height: 750px;
+        }
+
+        .move-left-btn, .move-right-btn {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            border: 1px solid #4b5563;
+        }
+
+        .move-left-btn:hover, .move-right-btn:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .move-left-btn:active, .move-right-btn:active {
+            transform: scale(0.95);
+        }
+
+        #todo-tasks, #progress-tasks, #done-tasks {
+            overflow-y: auto;
+        }
+
+        #todo-tasks::-webkit-scrollbar,
+        #progress-tasks::-webkit-scrollbar,
+        #done-tasks::-webkit-scrollbar {
+            width: 6px; /* Daha ince */
+        }
+
+        #todo-tasks::-webkit-scrollbar-track,
+        #progress-tasks::-webkit-scrollbar-track,
+        #done-tasks::-webkit-scrollbar-track {
+            background: transparent; /* Sade ve temiz arkaplan */
+        }
+
+        #todo-tasks::-webkit-scrollbar-thumb,
+        #progress-tasks::-webkit-scrollbar-thumb,
+        #done-tasks::-webkit-scrollbar-thumb {
+            background-color: rgba(130, 130, 130, 0.5); /* Hafif gri, yarı saydam */
+            border-radius: 3px; /* Yuvarlak kenar */
+            border: 1px solid transparent; /* Küçük boşluk efekti */
+        }
+
+        #todo-tasks::-webkit-scrollbar-thumb:hover,
+        #progress-tasks::-webkit-scrollbar-thumb:hover,
+        #done-tasks::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(130, 130, 130, 0.8); /* Hover’da daha koyu */
+        }
+
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen">
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="column bg-red-300 bg-opacity-30 rounded-lg p-4 shadow-lg flex flex-col">
+            <h2 class="text-xl font-semibold mb-4 text-center text-red-400 border-b border-gray-700 pb-2">To Do</h2>
+            <div id="todo-tasks" class="space-y-3 flex-grow"></div>
+            <form data-column="todo" class="mt-4 add-task-form flex gap-2">
+                <input type="text" placeholder="Add task..." required
+                       class="flex-grow px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:border-purple-500 focus:outline-none">
+                <button type="submit" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="column bg-yellow-300 bg-opacity-30 rounded-lg p-4 shadow-lg flex flex-col">
+            <h2 class="text-xl font-semibold mb-4 text-center text-yellow-400 border-b border-gray-700 pb-2">In
+                Progress</h2>
+            <div id="progress-tasks" class="space-y-3 flex-grow"></div>
+            <form data-column="progress" class="mt-4 add-task-form flex gap-2">
+                <input type="text" placeholder="Add task..." required
+                       class="flex-grow px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:border-purple-500 focus:outline-none">
+                <button type="submit" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="column bg-green-300 bg-opacity-30 rounded-lg p-4 shadow-lg flex flex-col">
+            <h2 class="text-xl font-semibold mb-4 text-center text-green-400 border-b border-gray-700 pb-2">Done</h2>
+            <div id="done-tasks" class="space-y-3 flex-grow"></div>
+            <form data-column="done" class="mt-4 add-task-form flex gap-2">
+                <input type="text" placeholder="Add task..." required
+                       class="flex-grow px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:border-purple-500 focus:outline-none">
+                <button type="submit" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-xl font-semibold mb-4 text-purple-400">Edit Task</h3>
+        <input type="text" id="editTaskInput" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-4">
+        <div class="flex justify-end gap-3">
+            <button id="cancelEdit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">Cancel</button>
+            <button id="saveEdit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const todoList = document.getElementById('todo-tasks');
+        const progressList = document.getElementById('progress-tasks');
+        const doneList = document.getElementById('done-tasks');
+
+        // Load tasks from local storage
+        loadTasksFromLocalStorage();
+
+        // Column-specific form submissions
+        document.querySelectorAll('.add-task-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const input = this.querySelector('input[type="text"]');
+                const column = this.getAttribute('data-column');
+                if (input.value.trim() !== '') {
+                    addTask(input.value.trim(), column);
+                    input.value = '';
+                }
+            });
+        });
+
+        // Modal buttons
+        document.getElementById('cancelEdit').addEventListener('click', closeEditModal);
+        document.getElementById('saveEdit').addEventListener('click', saveEditedTask);
+
+        // Function to add a new task
+        function addTask(text, status, id = Date.now()) {
+            const taskElement = createTaskElement(text, id, status);
+
+            switch (status) {
+                case 'todo':
+                    todoList.appendChild(taskElement);
+                    break;
+                case 'progress':
+                    progressList.appendChild(taskElement);
+                    break;
+                case 'done':
+                    doneList.appendChild(taskElement);
+                    break;
+            }
+
+            saveTasksToLocalStorage();
+        }
+
+        // Function to create a task element
+        function createTaskElement(text, id, status) {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-card bg-gray-700 p-3 rounded-lg';
+            taskElement.setAttribute('data-id', id);
+
+            taskElement.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="task-text flex-grow">${text}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-600">
+                        <div class="flex gap-3">
+                            <button class="edit-btn p-1 text-gray-400 hover:text-purple-400">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn p-1 text-gray-400 hover:text-red-400">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="move-left-btn px-1 py-1 text-2xl font-bold text-gray-400 hover:text-white bg-transparent ${status === 'todo' ? 'invisible' : ''}">←</button>
+                            <button class="move-right-btn px-1 py-1 text-2xl font-bold text-gray-400 hover:text-white bg-transparent ${status === 'done' ? 'invisible' : ''}">→</button>
+                        </div>
+                    </div>
+                `;
+
+            // Add event listeners for buttons
+            taskElement.querySelector('.edit-btn').addEventListener('click', () => openEditModal(id, text));
+            taskElement.querySelector('.delete-btn').addEventListener('click', () => deleteTask(id));
+            taskElement.querySelector('.move-left-btn').addEventListener('click', () => moveTaskLeft(id));
+            taskElement.querySelector('.move-right-btn').addEventListener('click', () => moveTaskRight(id));
+
+            return taskElement;
+        }
+
+        // Function to delete a task
+        function deleteTask(id) {
+            const taskElement = document.querySelector(`.task-card[data-id="${id}"]`);
+            if (taskElement) {
+                taskElement.remove();
+                saveTasksToLocalStorage();
+            }
+        }
+
+        // Function to open edit modal
+        function openEditModal(id, text) {
+            const modal = document.getElementById('editModal');
+            document.getElementById('editTaskInput').value = text;
+            document.getElementById('editTaskInput').setAttribute('data-id', id);
+            modal.classList.remove('hidden');
+        }
+
+        // Function to close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveEditedTask() {
+            const editInput = document.getElementById('editTaskInput');
+            const id = editInput.getAttribute('data-id');
+            const newText = editInput.value.trim();
+
+            if (newText !== '') {
+                const taskElement = document.querySelector(`.task-card[data-id="${id}"]`);
+                if (taskElement) {
+                    taskElement.querySelector('.task-text').textContent = newText;
+                    saveTasksToLocalStorage();
+                }
+            }
+
+            closeEditModal();
+        }
+
+        // Function to save tasks to local storage
+        function saveTasksToLocalStorage() {
+            const tasks = {
+                todo: getTasksFromColumn('todo-tasks'),
+                progress: getTasksFromColumn('progress-tasks'),
+                done: getTasksFromColumn('done-tasks')
+            };
+
+            localStorage.setItem('todoAppTasks', JSON.stringify(tasks));
+        }
+
+        // Function to get tasks from a column
+        function getTasksFromColumn(columnId) {
+            const column = document.getElementById(columnId);
+            const tasks = [];
+
+            column.querySelectorAll('.task-card').forEach(taskElement => {
+                tasks.push({
+                    id: taskElement.getAttribute('data-id'),
+                    text: taskElement.querySelector('.task-text').textContent
+                });
+            });
+
+            return tasks;
+        }
+
+        function moveTaskLeft(id) {
+            const taskElement = document.querySelector(`.task-card[data-id="${id}"]`);
+            if (!taskElement) return;
+
+            const currentColumn = taskElement.closest('[id$="-tasks"]');
+            let targetColumn;
+
+            if (currentColumn.id === 'progress-tasks') {
+                targetColumn = todoList;
+            } else if (currentColumn.id === 'done-tasks') {
+                targetColumn = progressList;
+            } else {
+                return;
+            }
+
+            const text = taskElement.querySelector('.task-text').textContent;
+            taskElement.remove();
+            addTask(text, targetColumn === todoList ? 'todo' : 'progress', id);
+        }
+
+        function moveTaskRight(id) {
+            const taskElement = document.querySelector(`.task-card[data-id="${id}"]`);
+            if (!taskElement) return;
+
+            const currentColumn = taskElement.closest('[id$="-tasks"]');
+            let targetColumn;
+
+            if (currentColumn.id === 'todo-tasks') {
+                targetColumn = progressList;
+            } else if (currentColumn.id === 'progress-tasks') {
+                targetColumn = doneList;
+            } else {
+                return;
+            }
+
+            const text = taskElement.querySelector('.task-text').textContent;
+            taskElement.remove();
+            addTask(text, targetColumn === progressList ? 'progress' : 'done', id);
+        }
+
+        // Function to load tasks from local storage
+        function loadTasksFromLocalStorage() {
+            const savedTasks = localStorage.getItem('todoAppTasks');
+
+            if (savedTasks) {
+                const tasks = JSON.parse(savedTasks);
+
+                // Clear existing tasks
+                todoList.innerHTML = '';
+                progressList.innerHTML = '';
+                doneList.innerHTML = '';
+
+                // Add tasks to their respective columns
+                tasks.todo.forEach(task => addTask(task.text, 'todo', task.id));
+                tasks.progress.forEach(task => addTask(task.text, 'progress', task.id));
+                tasks.done.forEach(task => addTask(task.text, 'done', task.id));
+            }
+        }
+    });
+</script>
+</body>
+</html>
