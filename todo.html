@@ -45,27 +45,27 @@
         #todo-tasks::-webkit-scrollbar,
         #progress-tasks::-webkit-scrollbar,
         #done-tasks::-webkit-scrollbar {
-            width: 6px; /* Daha ince */
+            width: 6px;
         }
 
         #todo-tasks::-webkit-scrollbar-track,
         #progress-tasks::-webkit-scrollbar-track,
         #done-tasks::-webkit-scrollbar-track {
-            background: transparent; /* Sade ve temiz arkaplan */
+            background: transparent;
         }
 
         #todo-tasks::-webkit-scrollbar-thumb,
         #progress-tasks::-webkit-scrollbar-thumb,
         #done-tasks::-webkit-scrollbar-thumb {
-            background-color: rgba(130, 130, 130, 0.5); /* Hafif gri, yarı saydam */
-            border-radius: 3px; /* Yuvarlak kenar */
-            border: 1px solid transparent; /* Küçük boşluk efekti */
+            background-color: rgba(130, 130, 130, 0.5);
+            border-radius: 3px;
+            border: 1px solid transparent;
         }
 
         #todo-tasks::-webkit-scrollbar-thumb:hover,
         #progress-tasks::-webkit-scrollbar-thumb:hover,
         #done-tasks::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(130, 130, 130, 0.8); /* Hover’da daha koyu */
+            background-color: rgba(130, 130, 130, 0.8);
         }
 
 
@@ -130,10 +130,8 @@
         const progressList = document.getElementById('progress-tasks');
         const doneList = document.getElementById('done-tasks');
 
-        // Load tasks from local storage
         loadTasksFromLocalStorage();
 
-        // Column-specific form submissions
         document.querySelectorAll('.add-task-form').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -150,7 +148,6 @@
         document.getElementById('cancelEdit').addEventListener('click', closeEditModal);
         document.getElementById('saveEdit').addEventListener('click', saveEditedTask);
 
-        // Function to add a new task
         function addTask(text, status, id = Date.now()) {
             const taskElement = createTaskElement(text, id, status);
 
@@ -169,7 +166,6 @@
             saveTasksToLocalStorage();
         }
 
-        // Function to create a task element
         function createTaskElement(text, id, status) {
             const taskElement = document.createElement('div');
             taskElement.className = 'task-card bg-gray-700 p-3 rounded-lg';
@@ -195,7 +191,6 @@
                     </div>
                 `;
 
-            // Add event listeners for buttons
             taskElement.querySelector('.edit-btn').addEventListener('click', () => openEditModal(id, text));
             taskElement.querySelector('.delete-btn').addEventListener('click', () => deleteTask(id));
             taskElement.querySelector('.move-left-btn').addEventListener('click', () => moveTaskLeft(id));
@@ -204,7 +199,6 @@
             return taskElement;
         }
 
-        // Function to delete a task
         function deleteTask(id) {
             const taskElement = document.querySelector(`.task-card[data-id="${id}"]`);
             if (taskElement) {
@@ -213,7 +207,6 @@
             }
         }
 
-        // Function to open edit modal
         function openEditModal(id, text) {
             const modal = document.getElementById('editModal');
             document.getElementById('editTaskInput').value = text;
@@ -221,7 +214,6 @@
             modal.classList.remove('hidden');
         }
 
-        // Function to close edit modal
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
         }
@@ -308,19 +300,16 @@
             addTask(text, targetColumn === progressList ? 'progress' : 'done', id);
         }
 
-        // Function to load tasks from local storage
         function loadTasksFromLocalStorage() {
             const savedTasks = localStorage.getItem('todoAppTasks');
 
             if (savedTasks) {
                 const tasks = JSON.parse(savedTasks);
 
-                // Clear existing tasks
                 todoList.innerHTML = '';
                 progressList.innerHTML = '';
                 doneList.innerHTML = '';
 
-                // Add tasks to their respective columns
                 tasks.todo.forEach(task => addTask(task.text, 'todo', task.id));
                 tasks.progress.forEach(task => addTask(task.text, 'progress', task.id));
                 tasks.done.forEach(task => addTask(task.text, 'done', task.id));
